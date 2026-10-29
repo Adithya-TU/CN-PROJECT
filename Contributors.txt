@@ -1,0 +1,25 @@
+# Contributors
+
+## Member 1
+- Name: ADITHYA TU
+- SRN: PES1UG25CS027
+- Email: adithyatu@gmail.com
+- GitHub ID: Adithya-TU
+
+## Member 2
+- Name: Abhijai Awasthi
+- SRN: PES1UG25CS012
+- Email: abhijai703@gmail.com
+- GitHub ID: Abhijai-Awasthi
+
+## Member 3
+- Name: Aashmeen Kaur
+- SRN: PES1UG25CS010
+- Email: aashmeenkaur60@gmail.com 
+- GitHub ID: aashmeenkaur60-dotcom
+
+## Member 4
+- Name: Amogh T Chetan
+- SRN: PES1UG25CS056
+- Email: tchetanamogh@gmail.com
+- GitHub ID: tchetanamogh-ux
