@@ -1,9 +1,11 @@
 import socket
 import threading
 import json
+import time
 
 HOST = "0.0.0.0"
 PORT = 5000
+DURATION = 120
 
 questions = [
     {"q": "What does TCP stand for?", "options": ["Transfer Control Protocol", "Transmission Control Protocol", "Transport Connection Process", "Terminal Control Protocol"], "answer": 1},
@@ -18,26 +20,38 @@ lock = threading.Lock()
 
 def handle_client(conn, addr):
     score = 0
+    elapsed = 0
+    start_time = time.time()
+
     try:
         with conn:
             stream = conn.makefile("r", encoding="utf-8")
+
             exam = {
                 "type": "exam",
                 "questions": [{"q": q["q"], "options": q["options"]} for q in questions],
-                "duration": 120
+                "duration": DURATION
             }
+
             conn.sendall((json.dumps(exam) + "\n").encode())
 
+            conn.settimeout(DURATION)
             line = stream.readline()
+
             if not line:
                 print("Client disconnected before submitting:", addr)
                 return
 
+            elapsed = round(time.time() - start_time, 2)
             submission = json.loads(line)
             answers = submission.get("answers", [])
 
             if not isinstance(answers, list):
                 raise ValueError("Answers must be a list")
+
+            if elapsed > DURATION:
+                print("Time limit exceeded:", addr)
+                return
 
             score = sum(
                 1 for i, q in enumerate(questions)
@@ -53,21 +67,31 @@ def handle_client(conn, addr):
             response = {
                 "type": "result",
                 "score": score,
-                "total": len(questions)
+                "total": len(questions),
+                "elapsed": elapsed
             }
+
             conn.sendall((json.dumps(response) + "\n").encode())
+
+    except socket.timeout:
+        elapsed = round(time.time() - start_time, 2)
+        print("Time limit exceeded:", addr)
 
     except (OSError, ValueError, json.JSONDecodeError) as e:
         print("Client error:", addr, e)
+
     finally:
-        print("Finished:", addr, "Score:", score)
+        if elapsed == 0:
+            elapsed = round(time.time() - start_time, 2)
+        print("Finished:", addr, "Score:", score, "Time:", elapsed, "seconds")
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind((HOST, PORT))
         server.listen()
-        print(f"Exam server listening on {HOST}:{PORT}")
+
+        print(f"TCP exam server listening on {HOST}:{PORT}")
 
         while True:
             conn, addr = server.accept()
