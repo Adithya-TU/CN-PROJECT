@@ -1,10 +1,11 @@
-
 import socket
 import json
 import sys
 
+
 HOST = sys.argv[1] if len(sys.argv) > 1 else "127.0.0.1"
 PORT = 5000
+
 
 def main():
     try:
@@ -23,10 +24,12 @@ def main():
                 return
 
             questions = exam.get("questions", [])
+            duration = exam.get("duration", 120)
             answers = []
 
             print("\nONLINE EXAMINATION")
             print("------------------")
+            print("Time limit:", duration, "seconds")
 
             for i, question in enumerate(questions, 1):
                 print(f"\n{i}. {question['q']}")
@@ -44,9 +47,7 @@ def main():
 
                     print(f"Enter a number from 1 to {len(options)}.")
 
-            sock.sendall(
-                (json.dumps({"answers": answers}) + "\n").encode("utf-8")
-            )
+            sock.sendall((json.dumps({"answers": answers}) + "\n").encode("utf-8"))
 
             result_line = stream.readline()
 
@@ -57,10 +58,11 @@ def main():
             result = json.loads(result_line)
 
             if result.get("type") == "result":
-                print(
-                    f"\nYour score: {result.get('score', 0)}/"
-                    f"{result.get('total', len(questions))}"
-                )
+                print("\nEXAMINATION RESULT")
+                print("Score:", result.get("score", 0), "/", result.get("total", len(questions)))
+
+                if "elapsed" in result:
+                    print("Time taken:", result["elapsed"], "seconds")
             else:
                 print("Unexpected result from server.")
 
@@ -68,6 +70,6 @@ def main():
         print("Could not complete the exam:", error)
         print("Check that the server is running and the server IP/port are correct.")
 
+
 if __name__ == "__main__":
     main()
-
